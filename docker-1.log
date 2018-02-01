@@ -1,0 +1,9 @@
+REPOSITORY                 TAG                 IMAGE ID            CREATED              SIZE
+mandreev/ubuntu-tmp-file   latest              291addd5335a        About a minute ago   112MB
+ubuntu                     16.04               0458a4468cbc        6 days ago           112MB
+hello-world                latest              f2a91732366c        2 months ago         1.85kB
+
+docker inspect <u_container_id> - show information about container*
+docker inspect <u_image_id> - show information about image
+
+*now can use docker container inspect; docker container command for manage containers only
