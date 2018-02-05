@@ -104,6 +104,8 @@ docker push mcander/otus-reddit:1.0
 
 > \* Namespaces
 
+> By default, all containers have the PID namespace enabled. PID namespace provides separation of processes. The PID Namespace removes the view of the system processes, and allows process ids to be reused including pid 1. 
+
 > In certain cases you want your container to share the host’s process namespace, basically allowing processes within the container to see all of the processes on the system.
 
 > For example, you could build a container with debugging tools like `strace` or `gdb`, but want to use these tools when debugging processes within the container.
