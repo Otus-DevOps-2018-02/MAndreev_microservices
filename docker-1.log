@@ -1,0 +1,14 @@
+REPOSITORY                 TAG                 IMAGE ID            CREATED              SIZE
+mandreev/ubuntu-tmp-file   latest              291addd5335a        About a minute ago   112MB
+ubuntu                     16.04               0458a4468cbc        6 days ago           112MB
+hello-world                latest              f2a91732366c        2 months ago         1.85kB
+
+docker inspect <u_container_id> - show information about container*
+docker inspect <u_image_id> - show information about image
+
+*now can use docker container inspect; docker container command for manage containers only
+
+docker container inspect show full information about container:
+- Id, Create date, Start date, Current status, Image ID, Platform, Start config and params, Networks, Volumes, Diffs from other layers, etc so it is low-level information about container
+docker image inspect show full information about image:
+- Id, Repo, Create date, Author, Config (envs/args/workdir/exposed potrs/cmd - all info what was in Dockerfile), Author, Layers and diffs
