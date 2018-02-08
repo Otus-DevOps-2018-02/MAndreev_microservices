@@ -170,7 +170,7 @@ mcander/ui             3.0                 0272e3c71600        About a minute ag
 > \* Alpine Linux based dockerfiles; using official `ruby:2.2-alpine` image [comment Dockerfile](https://raw.githubusercontent.com/Otus-DevOps-2017-11/MAndreev_microservices/docker-3/reddit-microservices/comment/Dockerfile-alpine) and [ui Dockerfile](https://raw.githubusercontent.com/Otus-DevOps-2017-11/MAndreev_microservices/docker-3/reddit-microservices/ui/Dockerfile-alpine). 
 > Also we can use [alpine-based MongoDB image](https://github.com/mvertes/docker-alpine-mongo). And we can create own images based on `Alpine Linux` for ui and comment services, after app build we can delete packages, cache and temp files so we can create images near 50-60mb 
 
-> Next step after build images shuld pull it into docker registry or artifactory. And delete all local images.  
+> Next step after build images shuld pull it into docker registry and delete all local images.  
 
 #### Run reddit app
 - create app's network
