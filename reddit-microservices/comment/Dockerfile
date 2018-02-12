@@ -9,7 +9,7 @@ RUN apt-get update -qq && \
     bundle install && \
     rm -rf /var/lib/apt/lists/*
 
-ENV COMMENT_DATABASE_HOST comment_db \
-    COMMENT_DATABASE comments
+ENV COMMENT_DATABASE_HOST comment_db
+ENV COMMENT_DATABASE comments
 
 CMD ["puma"]
