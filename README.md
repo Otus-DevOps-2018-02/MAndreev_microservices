@@ -112,3 +112,88 @@ docker push mcander/otus-reddit:1.0
 
 > You can read more [docs.docker.com](https://docs.docker.com/engine/reference/run/#pid-settings-pid)
 
+## Homework 16
+- separate reddit app by components
+- run reddit app microservices 
+- use [Alpine Linux](https://alpinelinux.org/) like a base image for `comment` and `ui` services
+
+#### Prepare
+- move old files to `docker-monolith` directory
+- download [microservices.zip](https://github.com/express42/reddit/archive/microservices.zip) and unzip it into `reddit-microservices` directory
+- install [Haskell Dockerfile Linter](https://github.com/hadolint/hadolint)
+```bash
+brew install hadolint
+```
+- check and prepare docker host
+```bash
+docker-machine ls
+NAME          ACTIVE   DRIVER   STATE     URL                         SWARM   DOCKER        ERRORS
+docker-host   -        google   Running   tcp://35.198.110.167:2376           v18.02.0-ce   
+eval $(docker-machine env docker-host)
+```
+
+#### Build application
+`Reddit-microservices` contains:
+- `post-py` post service
+- `comment` comment service
+- `ui` web interface working with other services
+
+Let's build `reddit-app`
+- pull latest mongodb image
+```bash
+docker pull mongo:latest
+```
+- build app images
+```
+ docker build -t mcander/post:1.0 ./post-py
+ docker build -t mcander/comment:1.0 ./comment
+ docker build -t mcander/ui:1.0 ./ui
+```
+> UI build start from step 3 because it uses cache from previous comment build
+
+> To create a smaller comment and ui images we can use official Ubuntu 16.04 image [comment Dockerfile](https://raw.githubusercontent.com/Otus-DevOps-2017-11/MAndreev_microservices/docker-3/reddit-microservices/comment/Dockerfile-ubuntu) and [ui Dockerfile](https://raw.githubusercontent.com/Otus-DevOps-2017-11/MAndreev_microservices/docker-3/reddit-microservices/ui/Dockerfile-ubuntu)
+
+Here we can see difference between images
+```
+docker images
+REPOSITORY             TAG                 IMAGE ID            CREATED              SIZE
+mongo                  latest              0f57644645eb        3 weeks ago          366MB
+mvertes/alpine-mongo   latest              443e7dc9bcd7        5 days ago           110MB
+mcander/comment        1.0                 1c2ef9d817b3        3 minutes ago        757MB
+mcander/comment        2.0                 0d744ca66591        2 minutes ago        381MB
+mcander/comment        3.0                 c81f08a8463f        About a minute ago   122MB
+mcander/ui             1.0                 71100825173b        5 minutes ago        764MB
+mcander/ui             2.0                 35505dd361e8        22 seconds ago       391MB
+mcander/ui             3.0                 0272e3c71600        About a minute ago   130MB
+```
+
+> \* Alpine Linux based dockerfiles; using official `ruby:2.2-alpine` image [comment Dockerfile](https://raw.githubusercontent.com/Otus-DevOps-2017-11/MAndreev_microservices/docker-3/reddit-microservices/comment/Dockerfile-alpine) and [ui Dockerfile](https://raw.githubusercontent.com/Otus-DevOps-2017-11/MAndreev_microservices/docker-3/reddit-microservices/ui/Dockerfile-alpine). 
+> Also we can use [alpine-based MongoDB image](https://github.com/mvertes/docker-alpine-mongo). And we can create own images based on `Alpine Linux` for ui and comment services, after app build we can delete packages, cache and temp files so we can create images near 50-60mb 
+
+> Next step after build images shuld pull it into docker registry and delete all local images.  
+
+#### Run reddit app
+- create app's network
+```
+docker network creadte reddit_post
+```
+- create docker volume
+```
+docker volume create reddit_db
+```
+- run services
+```
+docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db  -v reddit_db:/data/db mongo:latest
+docker run -d --network=reddit --network-alias=post mcander/post:1.0
+docker run -d --network=reddit --network-alias=comment mcander/comment:1.0
+docker run -d --network=reddit -p 9292:9292 mcander/ui:1.0
+```
+
+And we can use different network alias
+
+```
+docker run -d --network=reddit --network-alias=reddit_post_db --network-alias=reddit_comment_db  -v reddit_db:/data/db mongo:latest
+docker run -d --network=reddit --network-alias=reddit_post --env POST_DATABASE_HOST=reddit_post_db mcander/post:1.0
+docker run -d --network=reddit --network-alias=reddit_comment --env COMMENT_DATABASE_HOST=reddit_comment_db mcander/comment:1.0
+docker run -d --network=reddit -p 9292:9292 --env COMMENT_SERVICE_HOST=reddit_comment --env POST_SERVICE_HOST=reddit_post mcander/ui:1.0
+```

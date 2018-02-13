@@ -1,0 +1,17 @@
+FROM ubuntu:16.04
+
+WORKDIR /app
+COPY . /app
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+    ruby-full ruby-dev \
+    build-essential && \
+    gem install bundler --no-ri --no-rdoc && \
+    bundle install && \
+    rm -rf /var/lib/apt/lists/*
+
+ENV COMMENT_DATABASE_HOST comment_db
+ENV COMMENT_DATABASE comments
+
+CMD ["puma"]
