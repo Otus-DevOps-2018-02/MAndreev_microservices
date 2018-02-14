@@ -278,7 +278,7 @@ Build and run `reddit app` with `docker-compose`
 ```bash
 docker-compose -p reddit-app- up -d
 ```
-- also can use docker-compose.override.yml to:
+> also can use docker-compose.override.yml to:
  - change app code. I think every docker image is a unique build result, so to change app code we just need to change image `TAG`. If we talk about versioning. Every build we can do unique compose file with ENVs for that build.
  ```bash
 docker-compose config > docker-compose-${TAG}.yml
