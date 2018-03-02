@@ -197,3 +197,91 @@ docker run -d --network=reddit --network-alias=reddit_post --env POST_DATABASE_H
 docker run -d --network=reddit --network-alias=reddit_comment --env COMMENT_DATABASE_HOST=reddit_comment_db mcander/comment:1.0
 docker run -d --network=reddit -p 9292:9292 --env COMMENT_SERVICE_HOST=reddit_comment --env POST_SERVICE_HOST=reddit_post mcander/ui:1.0
 ```
+## Homework 17
+- work with `docker` networks
+- using `docker-compose`
+- optimize reddit app `Dockerfile`s to use with `docker-compose`
+
+#### Docker networks
+`None` network driver: Disable networking
+```bash
+docker run --network none --rm -d --name net_test joffotron/docker-net-tools -c "sleep 100"
+docker exec -ti net_test ifconfig
+```
+> there is no any interfaces only loopback
+
+`Host` network driver: For standalone containers, remove network isolation between the container and the Docker host, and use the host’s networking directly
+```bash
+docker run --network host --rm -d --name net_test joffotron/docker-net-tools -c "sleep 100"docker exec -ti net_test ifconfig
+docker-machine ssh docker-host ifconfig
+
+```
+> same commands output; when we try to run `nginx` containers several times `docker run --network host -d nginx` previous container has en error `bind() to 0.0.0.0:80 failed (98: Address already in use)` so that address already in use
+
+We can exec commands in different net namespaces
+```bash
+# docker host commands
+sudo ln -s /var/run/docker/netns /var/run/netns
+sudo ip netns # show avaliable net ns
+  998a273b14f3 (id: 3)
+  7fb39007ca84 (id: 2)
+  371c26d3aca0 (id: 1)
+  563684341f4d (id: 0)
+  default
+
+ ip netns exec <namespace> <command>
+```
+
+`bridge` network driver: The default network driver. If you don’t specify a driver, this is the type of network you are creating. Bridge networks are usually used when your applications run in standalone containers that need to communicate. See bridge networks.
+
+- crete bridge network
+```bash
+docker network create reddit --driver bridge
+```
+- run `reddit app`. Need to use container name or network aliases
+```bash
+docker run -d --network=reddit --network-alias=post_db --network-alias=comment_db mongo:latest
+docker run -d --network=reddit --network-alias=post mcander/post:1.0
+docker run -d --network=reddit --network-alias=comment mcander/comment:1.0
+docker run -d --network=reddit -p 9292:9292 mcander/ui:1.0
+```
+- run `reddit app` with front and back networks.
+```bash
+docker kill $(docker ps -q) # stop old containers
+# create two networks
+docker network create back_net —subnet=10.0.2.0/24
+docker network create front_net --subnet=10.0.1.0/24
+# run application
+docker run -d --network=front_net -p 9292:9292 --name ui mcander/ui:1.0
+docker run -d --network=back_net --name comment mcander/comment:1.0
+docker run -d --network=back_net --name post mcander/comment:1.0
+docker run -d --network=back_net --name mongo_db --network-alias=post_db --network-alias=comment_db mongo:latest
+# connect post and connetct containers to front_net
+docker network connect front_net post
+docker network connect front_net comment
+```
+- \* inspect networks condition
+ Interesting post about docker networks [here](https://habrahabr.ru/post/333874/)
+
+#### Docker compose
+Build and run `reddit app` with `docker-compose`
+- create docker compose file. here I'm using:
+ - `container_name` to see app version. Now it is static, but we can use for explain like `ui-${branchName}-${commitId}-build-${buildNumber}`
+ - front/back networks with network aliases for containers
+ - logging (idk why maybe i have alot of free time). Im using swarm for ELK deploy. Thanks to [Jérôme Petazzoni](https://github.com/jpetazzo). Its only example.
+ ```bash
+ docker stack deploy elk -c elk.yml
+ ```
+ - `command` and `entrypoint` to make `Dockerfile` easy without excess layers
+- create `.env` with variables for `docker-compose.yml`
+- run `reddit app` using `COMPOSE_PROJECT_NAME`
+```bash
+docker-compose -p reddit-app- up -d
+```
+> also can use docker-compose.override.yml to:
+ - change app code. I think every docker image is a unique build result, so to change app code we just need to change image `TAG`. If we talk about versioning. Every build we can do unique compose file with ENVs for that build.
+ ```bash
+docker-compose config > docker-compose-${TAG}.yml
+ ```
+ now we have unique compose file with static ENVs
+ - run debug `puma` with two workers
