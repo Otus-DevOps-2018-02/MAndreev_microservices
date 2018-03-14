@@ -51,6 +51,15 @@ branch review:
   except:
     - master
 
+stop review:
+  stage: review
+    script:
+    - echo "Remove $CI_ENVIRONMENT_SLUG"
+  when: manual
+  environment:
+    name: branch/$CI_COMMIT_REF_NAME
+    action: stop
+
 staging:
   stage: stage
   when: manual
