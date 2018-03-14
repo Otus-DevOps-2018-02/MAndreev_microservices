@@ -53,7 +53,7 @@ branch review:
 
 stop review:
   stage: review
-    script:
+  script:
     - echo "Remove $CI_ENVIRONMENT_SLUG"
   when: manual
   environment:
