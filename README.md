@@ -285,3 +285,99 @@ docker-compose config > docker-compose-${TAG}.yml
  ```
  now we have unique compose file with static ENVs
  - run debug `puma` with two workers
+
+## Homework 19
+- deploy `Gitlab CI` at `GCP`
+- create example repo for `reddit app`
+- describe CI pipeline
+- mass Gitlab CI Runner register
+- add `Slack` integration
+
+#### Deploy `Gitlab CI`
+- Create instance
+```bash
+docker-machine create --driver google \                                           
+ --google-project docker-188912 \
+ --google-zone europe-west1-b \
+ --google-machine-type n1-standard-1 \
+ --google-disk-size 100 \                                                                  
+ --google-machine-image $(gcloud compute images list --filter ubuntu-1604-lts --uri) \ 
+ --google-tags 'default-allow-ssh, docker-machine, http-server, https-server'
+ gitlab
+ ```
+- Prepare env
+```
+docker-machine ssh gitlab
+sudo su
+apt install docker-compose -y
+mkdir -p /srv/gitlab/config /srv/gitlab/data /srv/gitlab/logs
+cd /srv/gitlab/
+cat <<EOF > docker-compose.yml
+web:
+  image: 'gitlab/gitlab-ce:latest'
+  restart: always
+  hostname: 'gitlab.example.com'
+  environment:
+    GITLAB_OMNIBUS_CONFIG: |
+      external_url 'http://35.187.28.115'
+  ports:
+    - '80:80'
+    - '443:443'
+    - '2222:22'
+  volumes:
+    - '/srv/gitlab/config:/etc/gitlab'
+    - '/srv/gitlab/logs:/var/log/gitlab'
+    - '/srv/gitlab/data:/var/opt/gitlab'
+EOF
+docker-compose up -d
+```
+- open http://35.187.28.115/ and set new `root` password
+- login into Gitlab and disable `Sing-up` (Admin Area\Settings\Sing-up Restrictions)
+
+#### Create example repo for `reddit app`
+- create new group `Homework` and create new project `example`
+- add git remote Gitlab
+```bash
+git checkout -b docker-6
+git remote add gitlab http://35.187.28.115/homework/example.git
+git push gitlab docker-6
+```
+- create `.gitlab-ci.yml`
+- add runner
+ - get token (`example` Settings\CI/CD\Runner settings\Expand)
+ - run `gitlab-runner` container
+ ```
+ eval $(docker-machine env gitlab)
+ docker run -d --name gitlab-runner --restart always \
+   -v /srv/gitlab-runner/config:/etc/gitlab-runner \
+   -v /var/run/docker.sock:/var/run/docker.sock \
+   gitlab/gitlab-runner:latest
+ ```
+ - register `gitlab-runner`.
+ ```
+ docker exec -it gitlab-runner gitlab-runner register
+ http://35.187.28.115 # url
+ `token` # token
+ my-runner # description
+ linux,xenial,ubuntu,docker # tags
+ true # untagged builds
+ false # lock for current project
+ docker # executor
+ alpine:latest # docker image
+ ```
+- add reddit app
+```
+git clone https://github.com/express42/reddit.git && rm -rf ./reddit/.git
+git add reddit/
+git commit -m “Add reddit app”
+git push gitlab docker-6
+```
+- add [simpletest.rb](https://gist.github.com/Nklya/d70ff7c6d1c02de8f18bcd049e904942) to `reddit` dir
+
+#### Mass Gitlab CI Runner register
+I have found [Runners autoscale](https://docs.gitlab.com/runner/configuration/autoscale.html) and [how to install and config them](https://docs.gitlab.com/runner/install/autoscaling.html)
+
+#### Add `Slack` integration
+- [Here](https://devops-team-otus.slack.com/services/B7MQ8N610) get webhook url
+- Add webhook to Gitlab Project Settings > Integrations > Slack notifications
+![Imgur](https://i.imgur.com/bBpkJFx.jpg)
