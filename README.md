@@ -385,3 +385,9 @@ I have found [Runners autoscale](https://docs.gitlab.com/runner/configuration/au
 ## Homework 20
 - Create Gitalab pipeline for Stage and Prod envs
 - Add dynamic envs with stop button
+
+## Homework 21
+- prepare env
+- build images
+- add prometheus and mode-exporter to docker-compose.yml
+- run and check services availability 

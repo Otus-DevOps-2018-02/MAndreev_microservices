@@ -1,0 +1,112 @@
+version: '3.4'
+services:
+  post_db:
+    container_name: post_db-${TAG}
+    image: mongo:3.2
+    volumes:
+      - post_db:/data/db
+    networks:
+      back_net:
+        aliases:
+          - post_db
+          - comment_db
+    restart: on-failure
+
+  ui:
+    container_name: ui-${TAG}
+    image: ${HUSERNAME}/ui:${TAG}
+    ports:
+      - 9292:9292/tcp
+    networks:
+      - front_net
+    environment:
+      POST_SERVICE_HOST: ${POST_SERVICE_HOST}
+      POST_SERVICE_PORT: ${POST_SERVICE_PORT}
+      COMMENT_SERVICE_HOST: ${COMMENT_SERVICE_HOST}
+      COMMENT_SERVICE_PORT: ${COMMENT_SERVICE_PORT}
+    command: puma
+    restart: on-failure
+    depends_on:
+      - post
+      - comment
+
+  post:
+    container_name: post-${TAG}
+    image: ${HUSERNAME}/post:${TAG}
+    networks:
+      front_net:
+        aliases:
+          - post
+      back_net:
+    environment:
+      POST_DATABASE_HOST: ${POST_DATABASE_HOST}
+      POST_DATABASE: ${POST_DATABASE}
+    entrypoint:
+      - python3
+      - post_app.py
+    restart: on-failure
+    depends_on:
+      - post_db
+
+  comment:
+    container_name: comment-${TAG}
+    image: ${HUSERNAME}/comment:${TAG}
+    networks:
+      front_net:
+        aliases:
+          - comment
+      back_net:
+    environment:
+      COMMENT_DATABASE_HOST: ${COMMENT_DATABASE_HOST}
+      COMMENT_DATABASE: ${COMMENT_DATABASE}
+    command: puma
+    restart: on-failure
+    depends_on:
+      - post_db
+
+  prometheus:
+    image: ${HUSERNAME}/prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention=1d'
+    networks:
+      - back_net
+      - front_net
+
+  node-exporter:
+    image: prom/node-exporter:v0.15.2
+    user: root
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
+    networks:
+      - back_net
+      - front_net
+
+volumes:
+  post_db:
+  prometheus_data:
+
+networks:
+  front_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.1.0/24
+  back_net:
+        driver: bridge
+        ipam:
+          driver: default
+          config:
+            - subnet: 10.0.2.0/24
