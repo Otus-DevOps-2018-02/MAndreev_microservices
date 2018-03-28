@@ -381,3 +381,7 @@ I have found [Runners autoscale](https://docs.gitlab.com/runner/configuration/au
 - [Here](https://devops-team-otus.slack.com/services/B7MQ8N610) get webhook url
 - Add webhook to Gitlab Project Settings > Integrations > Slack notifications
 ![Imgur](https://i.imgur.com/bBpkJFx.jpg)
+
+## Homework 20
+- Create Gitalab pipeline for Stage and Prod envs
+- Add dynamic envs with stop button
