@@ -392,5 +392,67 @@ I have found [Runners autoscale](https://docs.gitlab.com/runner/configuration/au
 - add prometheus and mode-exporter to docker-compose.yml
 - run and check services availability
 
-docker hub:
-https://hub.docker.com/u/mcander/ 
+# Prepare env
+- add firewall rules
+```
+
+```
+## Homework 21
+- prepare env
+- build images
+- add prometheus and mode-exporter to docker-compose.yml
+- run and check services availability
+
+# Prepare env
+- add firewall rules
+```bash
+gcloud compute firewall-rules create prometheus-default --allow tcp:9090
+gcloud compute firewall-rules create puma-default --allow tcp:9292
+```
+- create Docker host
+```bash
+export GOOGLE_PROJECT=docker-188912
+docker-machine create --driver google \
+    --google-machine-image https://www.googleapis.com/compute/v1/projects/ubuntu-os-cloud/global/images/family/ubuntu-1604-lts \
+    --google-machine-type n1-standard-1 \
+    --google-zone europe-west1-b \
+    vm1
+eval $(docker-machine env vm1)
+```
+- build `reddit-app` images
+```bash
+for i in ui post-py comment; do cd src/$i; bash docker_build.sh; cd -; done
+```
+
+
+## Prepare Prometheus
+- create `Dockerfile` in `monitoring/prometheus`
+- add Prometheus to `docker-compose.yml`
+- add config to collect app's metrics `monitoring/prometheus/prometheus.yml`
+
+## Add Node exporter, MongoDB exporter, Blackbox exporter
+- build [MongoDB exporter](https://github.com/dcu/mongodb_exporter/blob/master/Dockerfile) and [Blackbox exporter](https://github.com/prometheus/blackbox_exporter/blob/master/Dockerfile)
+- add Node exporter, MongoDB exporter, Blackbox exporter to `docker-compose.yml` and `prometheus.yml`
+- build Prometheus image
+```bash
+export USER_NAME=mcander
+docker build -t $USER_NAME/prometheus .
+```
+- tag MongoDB exporter, Blackbox exporter
+```bash
+for i in mongodb blackbox; do docker tag ${USER_NAME}/$i_exporter:latest ${USER_NAME}/$i_exporter:v1.0; done
+```
+
+## Push images
+```bash
+docker login
+for i in ui post-py comment prometheus; do docker push ${USER_NAME}/$i; done
+for i in mongodb blackbox; do docker push ${USER_NAME}/$i:v1.0; done
+```
+## Use docker compose
+```bash
+cd docker/
+docker-compose up -d # run app with Prometheus
+docker-compose down 
+docker-machine rm vm1 # delete vm1
+```
