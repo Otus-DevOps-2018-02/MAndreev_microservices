@@ -2,9 +2,8 @@ GEM
   remote: https://rubygems.org/
   specs:
     backports (3.11.1)
-    bson (1.12.5)
-    bson_ext (1.12.5)
-      bson (~> 1.12.5)
+    bson (4.2.2)
+    bson_ext (1.5.1)
     domain_name (0.5.20170404)
       unf (>= 0.0.5, < 1.0.0)
     et-orbi (1.0.8)

@@ -403,7 +403,7 @@ I have found [Runners autoscale](https://docs.gitlab.com/runner/configuration/au
 - add prometheus and mode-exporter to docker-compose.yml
 - run and check services availability
 
-# Prepare env
+#### Prepare env
 - add firewall rules
 ```bash
 gcloud compute firewall-rules create prometheus-default --allow tcp:9090
@@ -425,13 +425,14 @@ for i in ui post-py comment; do cd src/$i; bash docker_build.sh; cd -; done
 ```
 
 
-## Prepare Prometheus
+#### Prepare Prometheus
 - create `Dockerfile` in `monitoring/prometheus`
 - add Prometheus to `docker-compose.yml`
 - add config to collect app's metrics `monitoring/prometheus/prometheus.yml`
 
-## Add Node exporter, MongoDB exporter, Blackbox exporter
-- build [MongoDB exporter](https://github.com/dcu/mongodb_exporter/blob/master/Dockerfile) and [Blackbox exporter](https://github.com/prometheus/blackbox_exporter/blob/master/Dockerfile)
+#### Add Node exporter, MongoDB exporter, Blackbox exporter
+- build [Blackbox exporter](https://github.com/prometheus/blackbox_exporter/blob/master/Dockerfile)
+- use [MongoDB exporter](https://hub.docker.com/r/targetprocess/mongodb_exporter/)
 - add Node exporter, MongoDB exporter, Blackbox exporter to `docker-compose.yml` and `prometheus.yml`
 - build Prometheus image
 ```bash
@@ -443,16 +444,22 @@ docker build -t $USER_NAME/prometheus .
 for i in mongodb blackbox; do docker tag ${USER_NAME}/$i_exporter:latest ${USER_NAME}/$i_exporter:v1.0; done
 ```
 
-## Push images
+#### Push images
 ```bash
 docker login
 for i in ui post-py comment prometheus; do docker push ${USER_NAME}/$i; done
 for i in mongodb blackbox; do docker push ${USER_NAME}/$i:v1.0; done
 ```
-## Use docker compose
+#### Use docker compose
 ```bash
 cd docker/
 docker-compose up -d # run app with Prometheus
 docker-compose down 
 docker-machine rm vm1 # delete vm1
 ```
+## Homework 23
+- Docker container monitoring
+- Metrics visualization
+- Collect application and business metrics
+- Allerting
+docker hub: https://hub.docker.com/u/mcander/
