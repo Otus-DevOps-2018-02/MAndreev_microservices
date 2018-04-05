@@ -1,12 +1,13 @@
-FROM ruby:2.2-alpine
+FROM ruby:2.2
 
 WORKDIR /app
 COPY . /app
 
-RUN apk add --no-cache build-base && \
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+    build-essential && \
     bundle install && \
-    apk del build-base && \
-    rm -rf /root/.bundle
+    rm -rf /var/lib/apt/lists/*
 
 ENV COMMENT_DATABASE_HOST comment_db
 ENV COMMENT_DATABASE comments

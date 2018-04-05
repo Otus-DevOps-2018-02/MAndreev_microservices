@@ -1,6 +1,5 @@
 version: '3.4'
 services:
-
   prometheus:
     image: ${HUSERNAME}/prometheus
     ports:
@@ -12,9 +11,16 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--storage.tsdb.retention=1d'
     networks:
-      - back_net
-      - front_net
-      
+      back_net:
+        aliases:
+          - prometheus
+      front_net:
+        aliases:
+          - prometheus
+      monitoring:
+        aliases:
+          - prometheus
+
   node-exporter:
     image: prom/node-exporter:v0.15.2
     user: root
@@ -27,9 +33,24 @@ services:
       - '--path.sysfs=/host/sys'
       - '--collector.filesystem.ignored-mount-points="^/(sys|proc|dev|host|etc)($$|/)"'
     networks:
+      - monitoring
+
+  mongod-exporter:
+    image: targetprocess/mongodb_exporter
+    command:
+      - '-mongodb.uri=mongodb://post_db:27017'
+    volumes:
+      - /tmp:/tmp
+    networks:
       - back_net
+
+  blackbox-exporter:
+    image: ${HUSERNAME}/blackbox-exporter:v1.0
+    networks:
       - front_net
-      
+    ports:
+      - '9115:9115'
+
   cadvisor:
     image: google/cadvisor:v0.29.0
     volumes:
@@ -40,8 +61,7 @@ services:
     ports:
       - '8080:8080'
     networks:
-      - back_net
-      - front_net
+      - monitoring
 
   grafana:
     image: grafana/grafana:5.0.0
@@ -55,8 +75,7 @@ services:
     ports:
       - 3000:3000
     networks:
-      - back_net
-      - front_net
+      - monitoring
 
   alertmanager:
     image: ${USER_NAME}/alertmanager
@@ -65,14 +84,19 @@ services:
     ports:
       - 9093:9093
     networks:
-      - back_net
-      - front_net
+      - monitoring
 
 volumes:
-  grafana_data:
   prometheus_data:
+  grafana_data:
 
 networks:
+  monitoring:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.3.0/24
   front_net:
     external:
       name: docker_front_net

@@ -18,7 +18,9 @@ services:
     ports:
       - 9292:9292/tcp
     networks:
-      - front_net
+      front_net:
+        aliases:
+          - ui
     environment:
       POST_SERVICE_HOST: ${POST_SERVICE_HOST}
       POST_SERVICE_PORT: ${POST_SERVICE_PORT}
@@ -38,6 +40,8 @@ services:
         aliases:
           - post
       back_net:
+        aliases:
+          - post
     environment:
       POST_DATABASE_HOST: ${POST_DATABASE_HOST}
       POST_DATABASE: ${POST_DATABASE}
@@ -56,6 +60,8 @@ services:
         aliases:
           - comment
       back_net:
+        aliases:
+          - comment
     environment:
       COMMENT_DATABASE_HOST: ${COMMENT_DATABASE_HOST}
       COMMENT_DATABASE: ${COMMENT_DATABASE}
@@ -75,8 +81,8 @@ networks:
       config:
         - subnet: 10.0.1.0/24
   back_net:
-        driver: bridge
-        ipam:
-          driver: default
-          config:
-            - subnet: 10.0.2.0/24
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.2.0/24
