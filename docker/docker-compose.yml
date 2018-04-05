@@ -74,12 +74,6 @@ volumes:
   post_db:
 
 networks:
-  monitoring:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.0.3.0/24
   front_net:
     driver: bridge
     ipam:

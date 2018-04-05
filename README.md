@@ -424,6 +424,7 @@ eval $(docker-machine env vm1)
 for i in ui post-py comment; do cd src/$i; bash docker_build.sh; cd -; done
 ```
 
+
 #### Prepare Prometheus
 - create `Dockerfile` in `monitoring/prometheus`
 - add Prometheus to `docker-compose.yml`
@@ -449,7 +450,6 @@ docker login
 for i in ui post-py comment prometheus; do docker push ${USER_NAME}/$i; done
 for i in mongodb blackbox; do docker push ${USER_NAME}/$i:v1.0; done
 ```
-
 #### Use docker compose
 ```bash
 cd docker/
@@ -457,7 +457,6 @@ docker-compose up -d # run app with Prometheus
 docker-compose down 
 docker-machine rm vm1 # delete vm1
 ```
-
 ## Homework 23
 - Docker container monitoring
 - Metrics visualization

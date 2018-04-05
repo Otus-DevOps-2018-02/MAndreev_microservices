@@ -45,7 +45,7 @@ services:
       - back_net
 
   blackbox-exporter:
-    image: ${HUSERNAME}/blackbox-exporter:v1.0
+    image: prom/blackbox-exporter:v0.12.0
     networks:
       - front_net
     ports:
