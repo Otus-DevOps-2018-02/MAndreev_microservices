@@ -1,12 +1,14 @@
-FROM ruby:2.2-alpine
+FROM ruby:2.2
 
 WORKDIR /app
 COPY . /app
 
-RUN apk add --no-cache build-base && \
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+    build-essential && \
     bundle install && \
-    apk del build-base && \
-    rm -rf /root/.bundle
+    rm -rf /var/lib/apt/lists/*
+
 
 ENV POST_SERVICE_HOST post
 ENV POST_SERVICE_PORT 5000

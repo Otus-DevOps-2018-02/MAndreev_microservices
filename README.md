@@ -392,17 +392,6 @@ I have found [Runners autoscale](https://docs.gitlab.com/runner/configuration/au
 - add prometheus and mode-exporter to docker-compose.yml
 - run and check services availability
 
-# Prepare env
-- add firewall rules
-```
-
-```
-## Homework 21
-- prepare env
-- build images
-- add prometheus and mode-exporter to docker-compose.yml
-- run and check services availability
-
 #### Prepare env
 - add firewall rules
 ```bash
@@ -463,3 +452,13 @@ docker-machine rm vm1 # delete vm1
 - Collect application and business metrics
 - Allerting
 docker hub: https://hub.docker.com/u/mcander/
+
+## Homework 25
+- Add monitoring and trace services Elasticsearch, Fluentd, Kibana, Zipkin
+- Using grog parsing for fluentd
+- Change some compose files and add sript to up and down docker networks
+
+```bash
+docker-compose -f docker-compose-logging.yaml up -d --build
+docker-compose up
+```

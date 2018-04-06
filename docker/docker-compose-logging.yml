@@ -1,0 +1,41 @@
+version: '3.4'
+
+services:
+  fluentd:
+    build: ./fluentd
+    ports:
+      - '24224:24224'
+      - "24224:24224/udp"
+    networks:
+      logging:
+
+  elasticsearch:
+    image: elasticsearch:latest
+    expose:
+      - 9200
+    ports:
+      - "9200:9200"
+    networks:
+      logging:
+
+  kibana:
+    image: kibana:latest
+    ports:
+      - "5601:5601"
+    networks:
+      logging:
+      front_net:
+
+  zipkin:
+    image: openzipkin/zipkin:latest
+    ports:
+      - "9411:9411"
+    networks:
+      logging:
+
+networks:
+  front_net:
+    external: true
+  logging:
+    external: true
+
