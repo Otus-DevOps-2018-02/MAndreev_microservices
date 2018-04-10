@@ -10,6 +10,7 @@ services:
         aliases:
           - post_db
           - comment_db
+      logging:
     restart: on-failure
 
   ui:
@@ -18,6 +19,7 @@ services:
     ports:
       - 9292:9292/tcp
     networks:
+      logging:
       front_net:
         aliases:
           - ui
@@ -31,11 +33,17 @@ services:
     depends_on:
       - post
       - comment
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.ui
 
   post:
     container_name: post-${TAG}
     image: ${HUSERNAME}/post:${TAG}
     networks:
+      logging:
       front_net:
         aliases:
           - post
@@ -51,11 +59,17 @@ services:
     restart: on-failure
     depends_on:
       - post_db
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.post
 
   comment:
     container_name: comment-${TAG}
     image: ${HUSERNAME}/comment:${TAG}
     networks:
+      logging:
       front_net:
         aliases:
           - comment
@@ -69,20 +83,20 @@ services:
     restart: on-failure
     depends_on:
       - post_db
+    logging:
+      driver: "fluentd"
+      options:
+        fluentd-address: localhost:24224
+        tag: service.comment
 
 volumes:
   post_db:
 
 networks:
   front_net:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.0.1.0/24
+    external: true
   back_net:
-    driver: bridge
-    ipam:
-      driver: default
-      config:
-        - subnet: 10.0.2.0/24
+    external: true
+  logging:
+    external: true
+
